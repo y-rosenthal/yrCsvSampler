@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CSV Sampler</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin-top: 50px;
+      }
+      input,
+      button {
+        padding: 10px;
+        margin: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>CSV Sampler</h1>
+    <input type="file" id="csvFileInput" accept=".csv" />
+    <input
+      type="number"
+      id="sampleSize"
+      placeholder="Enter number of rows to sample"
+    />
+    <button onclick="sampleCSV()">Sample CSV</button>
+    <br />
+    <a id="downloadLink" style="display: none">Download Sampled CSV</a>
+
+    <script>
+      function sampleCSV() {
+        const fileInput = document.getElementById("csvFileInput").files[0];
+        const sampleSize = parseInt(
+          document.getElementById("sampleSize").value
+        );
+
+        if (!fileInput || isNaN(sampleSize) || sampleSize <= 0) {
+          alert("Please select a CSV file and enter a valid sample size.");
+          return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (event) {
+          const lines = event.target.result.split("\n");
+          const header = lines[0];
+          const rows = lines.slice(1).filter((line) => line.trim() !== ""); // Remove empty lines
+
+          // Randomly sample rows
+          const sampledRows = [header];
+          while (sampledRows.length <= sampleSize && rows.length > 0) {
+            const randomIndex = Math.floor(Math.random() * rows.length);
+            sampledRows.push(rows.splice(randomIndex, 1)[0]);
+          }
+
+          // Create a new CSV file content
+          const sampledCSV = sampledRows.join("\n");
+          const blob = new Blob([sampledCSV], { type: "text/csv" });
+          const url = URL.createObjectURL(blob);
+
+          // Set up download link
+          const downloadLink = document.getElementById("downloadLink");
+          downloadLink.href = url;
+          downloadLink.download = "sampled_output.csv";
+          downloadLink.style.display = "inline";
+          downloadLink.textContent = "Download Sampled CSV";
+        };
+
+        reader.readAsText(fileInput);
+      }
+    </script>
+  </body>
+</html>
